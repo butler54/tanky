@@ -1,0 +1,44 @@
+ARG TANK_OS_BASE=quay.io/rh-ee-chbutler/tank-os:latest
+FROM ${TANK_OS_BASE}
+
+ARG SIGNAL_CLI_VERSION=0.14.3
+
+LABEL containers.bootc=1 \
+  org.opencontainers.image.title="tanky" \
+  org.opencontainers.image.description="Custom tank-os with signal-cli, Tailscale, and Home Assistant" \
+  org.opencontainers.image.source="https://github.com/butler54/tanky"
+
+# Tailscale repo + packages
+RUN curl -fsSL https://pkgs.tailscale.com/stable/fedora/tailscale.repo \
+      -o /etc/yum.repos.d/tailscale.repo && \
+    dnf -y install \
+      java-25-openjdk-headless \
+      qrencode \
+      tailscale && \
+    dnf clean all && \
+    rm -rf /var/cache/dnf /var/log/dnf*
+
+# Copy custom rootfs overlay (signal-cli service, HA scripts, Quadlet SELinux fixes, etc.)
+COPY rootfs/ /
+
+# Install signal-cli
+RUN set -eux; \
+    mkdir -p /opt/signal-cli-${SIGNAL_CLI_VERSION}; \
+    curl -fsSL \
+      "https://github.com/AsamK/signal-cli/releases/download/v${SIGNAL_CLI_VERSION}/signal-cli-${SIGNAL_CLI_VERSION}.tar.gz" \
+      -o /tmp/signal-cli.tar.gz; \
+    tar -xzf /tmp/signal-cli.tar.gz -C /opt/signal-cli-${SIGNAL_CLI_VERSION} --strip-components=1; \
+    ln -sf "/opt/signal-cli-${SIGNAL_CLI_VERSION}/bin/signal-cli" /usr/local/bin/signal-cli; \
+    rm /tmp/signal-cli.tar.gz
+
+# Set permissions on custom scripts (if any exist)
+RUN set -eux; \
+    if [ -f /usr/local/bin/tank-setup-homeassistant ]; then \
+      chmod 0755 /usr/local/bin/tank-setup-homeassistant; \
+    fi; \
+    if [ -f /usr/libexec/tank-os/setup-ha-secret.sh ]; then \
+      chmod 0755 /usr/libexec/tank-os/setup-ha-secret.sh; \
+    fi
+
+# Enable Tailscale daemon
+RUN systemctl enable tailscaled.service

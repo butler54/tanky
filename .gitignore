@@ -1,0 +1,7 @@
+out-tanky/
+*.qcow2
+*.iso
+*.tar
+*.log
+.DS_Store
+config.toml
