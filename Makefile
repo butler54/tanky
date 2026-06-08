@@ -1,8 +1,8 @@
 # tanky Makefile
 
-# Registry configuration (no defaults - must be set explicitly)
-IMAGE_REGISTRY ?=
-REGISTRY_USER ?=
+# Registry configuration
+REGISTRY ?= ghcr.io
+IMAGE_OWNER ?=
 IMAGE := tanky
 
 # Auto-detect architecture
@@ -18,12 +18,8 @@ else
 endif
 
 # Image URI construction
-ifneq ($(IMAGE_REGISTRY),)
-  ifneq ($(REGISTRY_USER),)
-    IMAGE_URI := $(IMAGE_REGISTRY)/$(REGISTRY_USER)/$(IMAGE)
-  else
-    IMAGE_URI := localhost/$(IMAGE)
-  endif
+ifneq ($(IMAGE_OWNER),)
+  IMAGE_URI := $(REGISTRY)/$(IMAGE_OWNER)/$(IMAGE)
 else
   IMAGE_URI := localhost/$(IMAGE)
 endif
@@ -36,7 +32,7 @@ help:
 	@echo ""
 	@echo "Common targets:"
 	@echo "  build          Build the bootc container image locally"
-	@echo "  push           Push the image to registry (requires IMAGE_REGISTRY and IMAGE_NAMESPACE)"
+	@echo "  push           Push the image to registry (requires IMAGE_OWNER)"
 	@echo "  build-qcow2    Build a QCOW2 disk image using bootc-image-builder"
 	@echo "  build-iso      Build an ISO installer using bootc-image-builder"
 	@echo "  lint           Run bootc container lint (if available)"
@@ -44,11 +40,11 @@ help:
 	@echo "  clean          Remove build artifacts"
 	@echo ""
 	@echo "Current configuration:"
-	@echo "  ARCH:            $(ARCH)"
-	@echo "  PLATFORM:        $(PLATFORM)"
-	@echo "  IMAGE_URI:       $(IMAGE_URI)"
-	@echo "  IMAGE_REGISTRY:  $(IMAGE_REGISTRY)"
-	@echo "  IMAGE_NAMESPACE: $(IMAGE_NAMESPACE)"
+	@echo "  ARCH:          $(ARCH)"
+	@echo "  PLATFORM:      $(PLATFORM)"
+	@echo "  IMAGE_URI:     $(IMAGE_URI)"
+	@echo "  REGISTRY:      $(REGISTRY)"
+	@echo "  IMAGE_OWNER:   $(IMAGE_OWNER)"
 
 .PHONY: build
 build:
@@ -56,9 +52,9 @@ build:
 
 .PHONY: push
 push:
-	@if [ -z "$(IMAGE_REGISTRY)" ] || [ -z "$(IMAGE_NAMESPACE)" ]; then \
-		echo "Error: IMAGE_REGISTRY and IMAGE_NAMESPACE must be set to push images"; \
-		echo "Example: make push IMAGE_REGISTRY=quay.io IMAGE_NAMESPACE=myorg"; \
+	@if [ -z "$(IMAGE_OWNER)" ]; then \
+		echo "Error: IMAGE_OWNER must be set to push images"; \
+		echo "Example: make push IMAGE_OWNER=butler54"; \
 		exit 1; \
 	fi
 	podman push $(IMAGE_URI):latest
@@ -70,10 +66,10 @@ build-qcow2:
 		echo "See docs/build.md for examples."; \
 		exit 1; \
 	fi
-	mkdir -p out-tank-os
+	mkdir -p out-tanky
 	podman run --rm --privileged \
 		--security-opt label=type:unconfined_t \
-		-v ./out-tank-os:/output \
+		-v ./out-tanky:/output \
 		-v ./config.toml:/config.toml:ro \
 		-v /var/lib/containers/storage:/var/lib/containers/storage \
 		quay.io/centos-bootc/bootc-image-builder:latest \
@@ -92,10 +88,10 @@ build-iso:
 		echo "See docs/build.md for examples."; \
 		exit 1; \
 	fi
-	mkdir -p out-tank-os
+	mkdir -p out-tanky
 	podman run --rm --privileged \
 		--security-opt label=type:unconfined_t \
-		-v ./out-tank-os:/output \
+		-v ./out-tanky:/output \
 		-v ./config.toml:/config.toml:ro \
 		-v /var/lib/containers/storage:/var/lib/containers/storage \
 		quay.io/centos-bootc/bootc-image-builder:latest \
@@ -109,10 +105,10 @@ build-iso:
 
 .PHONY: lint
 lint:
-	@if command -v bootc >/dev/null 2>&1; then \
+	@if command -v podman >/dev/null 2>&1; then \
 		podman run --rm $(IMAGE_URI):latest bootc container lint; \
 	else \
-		echo "bootc command not found, skipping lint"; \
+		echo "podman command not found, skipping lint"; \
 	fi
 
 .PHONY: verify
@@ -121,8 +117,8 @@ verify:
 		echo "COSIGN_PUBLIC_KEY not set, skipping verification"; \
 		exit 0; \
 	fi
-	@if [ -z "$(IMAGE_REGISTRY)" ] || [ -z "$(IMAGE_NAMESPACE)" ]; then \
-		echo "Error: IMAGE_REGISTRY and IMAGE_NAMESPACE must be set to verify images"; \
+	@if [ -z "$(IMAGE_OWNER)" ]; then \
+		echo "Error: IMAGE_OWNER must be set to verify images"; \
 		exit 1; \
 	fi
 	@if ! command -v cosign >/dev/null 2>&1; then \
@@ -135,4 +131,4 @@ verify:
 
 .PHONY: clean
 clean:
-	rm -rf out-tank-os
+	rm -rf out-tanky

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code when working with the tanky repositor
 
 ## What This Project Is
 
-**tanky** is a custom bootc image that layers additional features on top of [tank-os](https://github.com/LobsterTrap/tank-os). It uses the bootc layering pattern: `FROM quay.io/rh-ee-chbutler/tank-os:latest`.
+**tanky** is a custom bootc image that layers additional features on top of [tank-os](https://github.com/LobsterTrap/tank-os). It uses the bootc layering pattern: `FROM quay.io/rh-ee-chbutler/tank-os:latest`. Published to GHCR at `ghcr.io/butler54/tanky`.
 
 The base tank-os image provides:
 - Fedora bootc base
@@ -23,7 +23,7 @@ tanky adds:
 ### Local build
 
 ```bash
-make build IMAGE_REGISTRY=quay.io REGISTRY_USER=rh-ee-chbutler
+make build IMAGE_OWNER=butler54
 ```
 
 The Containerfile expects the base image `quay.io/rh-ee-chbutler/tank-os:latest` to exist.
