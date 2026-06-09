@@ -5,3 +5,5 @@ out-tanky/
 *.log
 .DS_Store
 config.toml
+.vscode/
+.claude/
