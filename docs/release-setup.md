@@ -39,13 +39,13 @@ If these are not configured, the release job will skip with a log message: *"Rel
 
 ### 2. Cosign (for image signing)
 
-Image signing is optional but recommended. If cosign secrets are not configured, the build still succeeds — signing and verification steps are skipped.
+Image signing is **required**. The tanky bootc image ships a container policy (`/etc/containers/policy.json`) that enforces cosign signature verification for all image pulls and `bootc switch`/`bootc upgrade` operations. Without signing configured, the host will reject image updates.
 
 | Type | Name | Value |
 |------|------|-------|
 | Secret | `COSIGN_PRIVATE_KEY` | The cosign private key |
 | Secret | `COSIGN_PASSWORD` | The password for the cosign private key |
-| Variable | `COSIGN_PUBLIC_KEY` | The cosign public key (for verification) |
+| Variable | `COSIGN_PUBLIC_KEY` | The cosign public key (embedded in the image at build time) |
 
 **Generate a cosign key pair:**
 
@@ -55,12 +55,50 @@ cosign generate-key-pair
 
 This creates `cosign.key` (private) and `cosign.pub` (public). Store the private key and password as secrets, and the public key as a variable.
 
+The `COSIGN_PUBLIC_KEY` variable is passed as a build argument during image builds. The Containerfile writes it to `/etc/pki/containers/tanky-cosign.pub`, which the baked-in `policy.json` references for signature verification.
+
 ### 3. GHCR Access
 
 The build workflow uses `GITHUB_TOKEN` for GHCR authentication. No additional configuration is needed as long as:
 
 - **Settings > Actions > General > Workflow permissions** is set to "Read and write permissions"
 - The repository is the source for the GHCR package (first push creates the package)
+
+## Container Signature Policy
+
+The tanky image ships a strict container policy at `/etc/containers/policy.json`:
+
+- **Default:** All container image pulls require cosign signature verification using the embedded public key at `/etc/pki/containers/tanky-cosign.pub`
+- **bootc system updates:** `bootc switch` and `bootc upgrade` also go through this policy, so the tanky image itself must be signed
+- **Exempted images:** `ghcr.io/openclaw/openclaw` and `ghcr.io/cgwalters/service-gator` are explicitly allowed without signatures (these are unsigned third-party images used by Quadlet units)
+
+The sigstore attachment lookup for GHCR is configured in `/etc/containers/registries.d/ghcr.io-butler54-tanky.yaml`.
+
+### How it works
+
+1. CI builds the image, passing `COSIGN_PUBLIC_KEY` as a build arg
+2. The Containerfile writes the key to `/etc/pki/containers/tanky-cosign.pub`
+3. The rootfs overlay installs `policy.json` requiring `sigstoreSigned` verification by default
+4. After build, CI signs the image with the private key via cosign
+5. On the host, any `podman pull` or `bootc upgrade` verifies the signature against the embedded public key
+
+### What happens without signing
+
+If cosign secrets are not configured:
+- The image still builds and pushes to GHCR
+- But the image will **not** be signed
+- A running host with the enforced policy will **reject** `bootc upgrade` or `podman pull` for `ghcr.io/butler54/tanky` because no valid signature exists
+
+## Key Rotation
+
+To rotate the cosign keypair:
+
+1. Generate a new keypair: `cosign generate-key-pair`
+2. Update the GitHub secrets (`COSIGN_PRIVATE_KEY`, `COSIGN_PASSWORD`) and variable (`COSIGN_PUBLIC_KEY`)
+3. Trigger a new release — the new public key is embedded in the image at build time
+4. After the host updates to the new image (via `bootc upgrade`), it will have the new public key and accept images signed with the new private key
+
+**Important:** The old image on the host still has the old public key. The transition works because the new image is signed with the **new** key and the new image also embeds the **new** public key. The first upgrade after rotation must be done before removing the old key from signing, or the host will reject the update.
 
 ## Verifying the Setup
 
@@ -75,13 +113,16 @@ Check the **Actions** tab for:
 1. "Validate Build and Create Release" — should create a `v0.0.1` tag
 2. "Build and Release Container Image" — triggered by the tag, builds and pushes to GHCR
 
-## Local Verification
+## Manual Verification
 
-After a release, verify the published image:
+Verify a published image signature from any machine with cosign installed:
 
 ```bash
-podman pull ghcr.io/butler54/tanky:latest
+cosign verify --key cosign.pub ghcr.io/butler54/tanky:latest
+```
 
-# If cosign is configured:
-make verify COSIGN_PUBLIC_KEY="$(cat cosign.pub)" IMAGE_OWNER=butler54
+On a running tanky host, the embedded key is at `/etc/pki/containers/tanky-cosign.pub`:
+
+```bash
+cosign verify --key /etc/pki/containers/tanky-cosign.pub ghcr.io/butler54/tanky:latest
 ```

@@ -1,0 +1,24 @@
+{
+    "default": [
+        {
+            "type": "sigstoreSigned",
+            "keyPath": "/etc/pki/containers/tanky-cosign.pub",
+            "signedIdentity": {
+                "type": "matchRepoDigestOrExact"
+            }
+        }
+    ],
+    "transports": {
+        "docker": {
+            "ghcr.io/openclaw/openclaw": [
+                { "type": "insecureAcceptAnything" }
+            ],
+            "ghcr.io/cgwalters/service-gator": [
+                { "type": "insecureAcceptAnything" }
+            ]
+        },
+        "docker-daemon": {
+            "": [ { "type": "insecureAcceptAnything" } ]
+        }
+    }
+}
