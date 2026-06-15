@@ -7,7 +7,7 @@ Custom layered bootc image built on top of [tank-os](https://github.com/LobsterT
 `tanky` is a Fedora bootc image that layers signal-cli, Tailscale, and Home Assistant integration on top of the base `tank-os` image. It provides a complete OpenClaw appliance with optional messaging, remote access, and smart home integration.
 
 **Base Image:** `quay.io/rh-ee-chbutler/tank-os:latest`  
-**Layered Image:** `quay.io/rh-ee-chbutler/tanky:latest`
+**Layered Image:** `ghcr.io/butler54/tanky:latest`
 
 ## Features Added by tanky
 
@@ -22,10 +22,10 @@ See `docs/` for setup instructions for each feature.
 
 ```bash
 # Build locally
-make build IMAGE_REGISTRY=quay.io REGISTRY_USER=rh-ee-chbutler
+make build IMAGE_OWNER=butler54
 
 # Or pull the published image
-podman pull quay.io/rh-ee-chbutler/tanky:latest
+podman pull ghcr.io/butler54/tanky:latest
 ```
 
 ## Documentation
