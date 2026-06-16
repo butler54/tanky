@@ -1,0 +1,3 @@
+docker:
+    ghcr.io/butler54/tanky:
+        use-sigstore-attachments: true

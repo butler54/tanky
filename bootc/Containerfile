@@ -2,6 +2,7 @@ ARG TANK_OS_BASE=quay.io/rh-ee-chbutler/tank-os:latest
 FROM ${TANK_OS_BASE}
 
 ARG SIGNAL_CLI_VERSION=0.14.3
+ARG COSIGN_PUBLIC_KEY
 
 LABEL containers.bootc=1 \
   org.opencontainers.image.title="tanky" \
@@ -20,6 +21,13 @@ RUN curl -fsSL https://pkgs.tailscale.com/stable/fedora/tailscale.repo \
 
 # Copy custom rootfs overlay (signal-cli service, HA scripts, Quadlet SELinux fixes, etc.)
 COPY rootfs/ /
+
+# Embed cosign public key for container signature verification
+RUN set -eux; \
+    mkdir -p /etc/pki/containers; \
+    if [ -n "${COSIGN_PUBLIC_KEY:-}" ]; then \
+      printf '%s\n' "${COSIGN_PUBLIC_KEY}" > /etc/pki/containers/tanky-cosign.pub; \
+    fi
 
 # Install signal-cli
 RUN set -eux; \
