@@ -15,7 +15,7 @@ The base tank-os image provides:
 tanky adds:
 - **signal-cli** — Signal messaging integration
 - **Tailscale** — Mesh networking and remote access
-- **Home Assistant helpers** — Smart home integration scripts
+- **Home Assistant integration** — External HA access via OpenClaw skill
 - **SELinux fixes** — Quadlet volume label corrections for persistent state
 
 ## Build Commands
@@ -57,8 +57,6 @@ FROM quay.io/rh-ee-chbutler/tank-os:latest
 **Rootfs overlay** contains only files that add to or override the base:
 - `etc/systemd/user/signal-cli.service` — signal-cli daemon unit
 - `etc/containers/systemd/users/1000/*.container` — Quadlet SELinux fixes
-- `usr/libexec/tank-os/setup-ha-secret.sh` — Home Assistant helper (if present)
-- `usr/local/bin/tank-setup-homeassistant` — HA CLI wrapper (if present)
 
 ## Important Notes
 
