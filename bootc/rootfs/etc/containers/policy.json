@@ -4,7 +4,7 @@
             "type": "sigstoreSigned",
             "keyPath": "/etc/pki/containers/tanky-cosign.pub",
             "signedIdentity": {
-                "type": "matchRepoDigestOrExact"
+                "type": "matchRepository"
             }
         }
     ],
