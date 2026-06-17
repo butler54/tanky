@@ -18,7 +18,7 @@ RUN curl -fsSL https://pkgs.tailscale.com/stable/fedora/tailscale.repo \
     dnf clean all && \
     rm -rf /var/cache/dnf /var/log/dnf*
 
-# Copy custom rootfs overlay (signal-cli service, Quadlet SELinux fixes, etc.)
+# Copy custom rootfs overlay (signal-cli service, HA scripts, Quadlet SELinux fixes, etc.)
 COPY rootfs/ /
 
 # Install signal-cli
@@ -30,6 +30,15 @@ RUN set -eux; \
     tar -xzf /tmp/signal-cli.tar.gz -C /opt/signal-cli-${SIGNAL_CLI_VERSION} --strip-components=1; \
     ln -sf "/opt/signal-cli-${SIGNAL_CLI_VERSION}/bin/signal-cli" /usr/local/bin/signal-cli; \
     rm /tmp/signal-cli.tar.gz
+
+# Set permissions on custom scripts (if any exist)
+RUN set -eux; \
+    if [ -f /usr/local/bin/tank-setup-homeassistant ]; then \
+      chmod 0755 /usr/local/bin/tank-setup-homeassistant; \
+    fi; \
+    if [ -f /usr/libexec/tank-os/setup-ha-secret.sh ]; then \
+      chmod 0755 /usr/libexec/tank-os/setup-ha-secret.sh; \
+    fi
 
 # Enable Tailscale daemon
 RUN systemctl enable tailscaled.service
