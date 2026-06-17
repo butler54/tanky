@@ -1,7 +1,7 @@
 ARG TANK_OS_BASE=quay.io/rh-ee-chbutler/tank-os:latest
 FROM ${TANK_OS_BASE}
 
-ARG SIGNAL_CLI_VERSION=0.14.3
+ARG SIGNAL_CLI_VERSION=0.14.5
 
 LABEL containers.bootc=1 \
   org.opencontainers.image.title="tanky" \
