@@ -4,7 +4,7 @@ jobs:
   block-ide-dirs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: Reject .vscode and .claude directories
         run: |
           if git ls-files .vscode .claude | grep -q .; then

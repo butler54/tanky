@@ -30,7 +30,7 @@ jobs:
         persist-credentials: false
 
     - name: Install dependencies
-      run: npm install @commitlint/cli @commitlint/config-conventional
+      run: npm install @commitlint/cli@20.5.3 @commitlint/config-conventional@20.5.3
 
     - name: Validate PR title
       run: |
