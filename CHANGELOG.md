@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v0.1.2 (2026-06-17)
+
+### Bug Fixes
+
+- Repair cosign signature verification for bootc upgrades
+  ([#14](https://github.com/butler54/tanky/pull/14),
+  [`6acebb3`](https://github.com/butler54/tanky/commit/6acebb3de19768ba5279924651032f2340f1b285))
+
+
 ## v0.1.1 (2026-06-17)
 
 ### Bug Fixes
