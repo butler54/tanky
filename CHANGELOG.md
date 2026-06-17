@@ -2,6 +2,24 @@
 
 <!-- version list -->
 
+## v0.1.3 (2026-06-17)
+
+### Bug Fixes
+
+- Upgrade signal-cli from 0.14.3 to 0.14.5 ([#16](https://github.com/butler54/tanky/pull/16),
+  [`e2a4c5f`](https://github.com/butler54/tanky/commit/e2a4c5fc0bef6bb60e24a95871f9c9d3e64e50cf))
+
+### Documentation
+
+- Remove dead HA stubs and document external integration
+  ([#15](https://github.com/butler54/tanky/pull/15),
+  [`df6ffda`](https://github.com/butler54/tanky/commit/df6ffda423c53c577e4d7b8d0ea58ccb546453d6))
+
+- **03a**: Keep Containerfile HA stubs for future disaster recovery
+  ([#15](https://github.com/butler54/tanky/pull/15),
+  [`df6ffda`](https://github.com/butler54/tanky/commit/df6ffda423c53c577e4d7b8d0ea58ccb546453d6))
+
+
 ## v0.1.2 (2026-06-17)
 
 ### Bug Fixes
