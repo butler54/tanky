@@ -60,8 +60,6 @@ jobs:
         context: bootc
         containerfiles: |
           bootc/Containerfile
-        build-args: |
-          COSIGN_PUBLIC_KEY=${{ env.COSIGN_PUBLIC_KEY }}
 
     - name: Push image by digest
       id: push
